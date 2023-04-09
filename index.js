@@ -44,9 +44,9 @@ client.on("message", function (topic, message) {
 })
 
 while (true) {
-
+    console.log("while (true)");
     function doSomething() {
-        console.log("正在循环");
+        console.log("doSomething正在循环");
         clearInterval(intervalId); // 停止定时器
     }
 
