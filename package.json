@@ -1,0 +1,8 @@
+{
+  "name": "self_mqtt",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "ok1054689 <228604034@qq.com>",
+  "license": "MIT",
+  "private": true
+}
