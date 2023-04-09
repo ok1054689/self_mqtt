@@ -24,6 +24,9 @@ client.on("message", function (topic, message) {
             // 关电
             client.publish(config.topic, '关电成功')
             console.log("已到期，关电成功");
+        }else{
+            client.publish(config.topic, '未到期')
+            console.log("未到期");
         }
         
     }
