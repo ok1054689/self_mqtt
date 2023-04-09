@@ -17,20 +17,27 @@ client.on('connect', function () {
 })
 
 client.on("message", function (topic, message) {
-    const msgObj = JSON.parse(message)
-    if (msgObj) {
-        const expireDate = new Date(msgObj.expire)
-        if (expireDate < new Date()) {
-            // 关电
-            client.publish(config.topic, '关电成功')
-            console.log("已到期，关电成功");
-        }else{
-            client.publish(config.topic, '未到期')
-            console.log("未到期");
+
+    try {
+        const msgObj = JSON.parse(message)
+        if (msgObj) {
+            const expireDate = new Date(msgObj.expire)
+            if (expireDate < new Date()) {
+                // 关电
+                client.publish(config.topic, '关电成功')
+                console.log("已到期，关电成功");
+            } else {
+                client.publish(config.topic, '未到期')
+                console.log("未到期");
+            }
+
         }
-        
+    } catch (e) {
+        console.log(topic,e);
+        // return false;
     }
+
     // message is Buffer
-    
+
     // client.end()
 })
