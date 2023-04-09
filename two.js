@@ -11,7 +11,7 @@ client.on('connect', function () {
 const room = {
     id: 1,
     name: "1号房间",
-    expire: "2023-03-12T10:05:42.093Z",
+    expire: "2023-04-12T10:05:42.093Z",
     power: false,
     mqttConfigs: [{
         topic: "self_room_command",
@@ -24,9 +24,9 @@ const room = {
 room.mqttConfigs.map((config) => {
 
     const message = {
-        id: 1,
-        name: "1号房间",
-        expire: "2023-03-12T10:05:42.093Z",
+        id: room.id,
+        name: room.name,
+        expire: room.expire,
         power: false,
         config
     }

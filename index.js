@@ -24,16 +24,17 @@ client.on("message", function (topic, message) {
             const expireDate = new Date(msgObj.expire)
             if (expireDate < new Date()) {
                 // 关电
-                client.publish(config.topic, '关电成功')
+
+                // client.publish(config.topic, '关电成功')
                 console.log("已到期，关电成功");
             } else {
-                client.publish(config.topic, '未到期')
+                // client.publish(config.topic, '未到期')
                 console.log("未到期");
             }
 
         }
     } catch (e) {
-        console.log(topic,e);
+        console.log(topic, e);
         // return false;
     }
 
@@ -41,3 +42,10 @@ client.on("message", function (topic, message) {
 
     // client.end()
 })
+
+while (true) {
+    console.log("正在循环");
+    setTimeout(function () {
+        // your code here
+    }, 1000);
+}
