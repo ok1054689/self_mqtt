@@ -43,12 +43,11 @@ client.on("message", function (topic, message) {
     // client.end()
 })
 
-while (true) {
-    console.log("while (true)");
-    function doSomething() {
+async function doSomething() {
+    while (true) {
         console.log("doSomething正在循环");
-        clearInterval(intervalId); // 停止定时器
+        await new Promise(resolve => setTimeout(resolve, 1000));
     }
-
-    const intervalId = setInterval(doSomething, 1000); // 在1秒钟后执行第一次任务
 }
+
+doSomething();
