@@ -44,8 +44,11 @@ client.on("message", function (topic, message) {
 })
 
 while (true) {
-    console.log("正在循环");
-    setTimeout(function () {
-        // your code here
-    }, 1000);
+
+    function doSomething() {
+        console.log("正在循环");
+        clearInterval(intervalId); // 停止定时器
+    }
+
+    const intervalId = setInterval(doSomething, 1000); // 在1秒钟后执行第一次任务
 }
