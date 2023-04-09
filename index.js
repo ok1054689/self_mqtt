@@ -17,7 +17,17 @@ client.on('connect', function () {
 })
 
 client.on("message", function (topic, message) {
+    const msgObj = JSON.parse(message)
+    if (msgObj) {
+        const expireDate = new Date(msgObj.expire)
+        if (expireDate < new Date()) {
+            // 关电
+            client.publish(config.topic, '关电成功')
+            console.log("已到期，关电成功");
+        }
+        
+    }
     // message is Buffer
-    console.log( message.toString())
+    
     // client.end()
 })

@@ -38,8 +38,8 @@ room.mqttConfigs.map((config) => {
 
 
 
-// client.on('message', function (topic, message) {
-//     // message is Buffer
-//     console.log(topic.toString(), message.toString())
-//     client.end()
-// })
+client.on('message', function (topic, message) {
+    // message is Buffer
+    console.log( message.toString())
+    // client.end()
+})
