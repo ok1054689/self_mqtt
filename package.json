@@ -4,5 +4,8 @@
   "main": "index.js",
   "author": "ok1054689 <228604034@qq.com>",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "mqtt": "^4.3.7"
+  }
 }
