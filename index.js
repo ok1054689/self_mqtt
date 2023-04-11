@@ -155,12 +155,15 @@ async function doSomething() {
         if (devices) {
             devices.data.map((device) => {
                 try {
-
-                    if (device.attributes.type == "relay" && device.attributes.pin) {
-                        const pin = new Gpio(device.attributes.pin, 'out');
-                        result = pin.readSync()
-                        client.publish(device.attributes.mqttTopic + "/state", JSON.stringify({ result, pin }))
+                    const { type, pin } = device.attributes.config
+                    const { mqttTopic } = device.attributes
+                    if (type == "relay" && pin) {
+                        const io = new Gpio(pin, 'out');
+                        result = io.readSync()
+                        client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, device }))
                     }
+                    console.log("publish", { type, pin, mqttTopic, result, });
+
                 } catch (error) {
                     console.error("client.publish", error, device);
                 }
