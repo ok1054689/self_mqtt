@@ -1,13 +1,53 @@
 // import * as mqtt from "mqtt"  // import everything inside the mqtt module and give it the namespace "mqtt"
 const mqtt = require('mqtt')
 const Gpio = require('onoff').Gpio;
+const http = require('http');
 
 const config = {
+    controlDeviceId: "device/nanchong_wanda",
     brokerUrl: 'mqtt://1.14.96.71',
     topic: "device/nanchong_wanda_1",
     username: 'test',
     password: 'test',
+    apiRoomId: 1,
+    apiHost: "192.168.1.109",
+    apiPort: 1339
 }
+
+// controlDeviceId=device/nanchong_wanda
+const options = {
+    hostname: config.apiHost,
+    port: config.apiPort,
+    path: '/api/devices?filters[controlDeviceId][$eq]=' + config.controlDeviceId,
+    method: 'GET'
+};
+
+try {
+    const req = http.request(options, (res) => {
+        console.log(`api statusCode: ${res.statusCode}`);
+        let data = '';
+
+        res.on('data', (chunk) => {
+            data += chunk;
+        });
+
+        res.on('end', () => {
+            const devices = JSON.parse(data)
+            console.log("end", devices.data)
+        });
+    });
+
+    req.on('error', (error) => {
+        console.error(error);
+    });
+    req.end();
+} catch (error) {
+    console.error("init api error", error);
+}
+
+
+
+
 
 let client = mqtt.connect(config.brokerUrl, {
     username: config.username,
@@ -18,11 +58,18 @@ let client = mqtt.connect(config.brokerUrl, {
 
 // console.log(client);
 client.on('connect', function () {
-    client.subscribe(config.topic, { qos: 2 }, function (err) {
-        if (!err) {
-            console.log('init connect mqtt')
+    if (devices) devices.map((device) => {
+        try {
+            client.subscribe(device.attributes.mqttTopic, { qos: 2 }, function (err) {
+                if (!err) {
+                    console.log('init connect mqtt', device.attributes.mqttTopic)
+                }
+            })
+        } catch (error) {
+            console.error("client.subscribe", error, device);
         }
     })
+
 
     //请求api这个店里所有的房间。
 
