@@ -190,7 +190,7 @@ setInterval(async () => {
                     result = io.readSync()
                     client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, mqttTopic, type }))
                 }
-                console.log("publish", { type, pin, mqttTopic, result, });
+                console.log("publish", type, pin, mqttTopic, result);
 
             } catch (error) {
                 console.error("client.publish", error, device);
