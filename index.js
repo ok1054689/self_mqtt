@@ -12,7 +12,7 @@ const config = {
     // topic: "device/nanchong_wanda_1",
     username: process.env.MQTT_USERNAME,
     password: process.env.MQTT_PASSWORD,
-    beattim: 5,
+    beattim: process.env.BEATTIM ?? 1,
 }
 function getStrapiURL(path) {
     return `${process.env.STRAPI_API_URL || "http://localhost:1337"
@@ -176,6 +176,8 @@ async function doSomething() {
 
 
 setInterval(async () => {
+
+    // console.log("tttt", config.beattim);
     const devices = await getDevices()
     // console.log("doSomething正在循环");
     if (devices) {
@@ -196,4 +198,4 @@ setInterval(async () => {
         })
     }
 
-}, config.beattim);
+}, config.beattim * 1000);
