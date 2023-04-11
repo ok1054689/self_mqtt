@@ -1,6 +1,9 @@
 // import * as mqtt from "mqtt"  // import everything inside the mqtt module and give it the namespace "mqtt"
 const mqtt = require('mqtt')
-let client = mqtt.connect('mqtt://1.14.96.71') // create a client
+let client = mqtt.connect('mqtt://1.14.96.71', {
+    username: 'test',
+    password: 'test',
+}) // create a client
 const config = {
     topic: "self_room_command",
     type: "relay"
@@ -9,11 +12,14 @@ const config = {
 
 // console.log(client);
 client.on('connect', function () {
-    client.subscribe(config.topic, function (err) {
-        if (!err) {
-            client.publish(config.topic, 'init connect mqtt')
-        }
-    })
+    // client.subscribe(config.topic, function (err) {
+    //     if (!err) {
+    //         client.publish(config.topic, 'init connect mqtt')
+    //     }
+    // })
+
+    //请求api这个店里所有的房间。
+
 })
 
 client.on("message", function (topic, message) {
