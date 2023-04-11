@@ -1,49 +1,69 @@
 // import * as mqtt from "mqtt"  // import everything inside the mqtt module and give it the namespace "mqtt"
 const mqtt = require('mqtt')
 const Gpio = require('onoff').Gpio;
-const http = require('http');
+// const http = require('http');
+const qs = require('qs');
+require('dotenv').config();
+const axios = require('axios');
 
 const config = {
-    controlDeviceId: "device/nanchong_wanda",
-    brokerUrl: 'mqtt://1.14.96.71',
-    topic: "device/nanchong_wanda_1",
-    username: 'test',
-    password: 'test',
-    apiRoomId: 1,
-    apiHost: "192.168.1.109",
-    apiPort: 1339
+    controlDeviceId: process.env.CONTROL_DEVICE_ID,
+    brokerUrl: process.env.BROKER_URL,
+    // topic: "device/nanchong_wanda_1",
+    username: process.env.MQTT_USERNAME,
+    password: process.env.MQTT_PASSWORD,
+    // apiRoomId: 1,
+}
+function getStrapiURL(path) {
+    return `${process.env.STRAPI_API_URL || "http://localhost:1337"
+        }${path}`
+}
+async function fetchAPI(path, urlParamsObject = {}, options = {}) {
+    // Merge default and user options
+    const mergedOptions = {
+        headers: {
+            "Content-Type": "application/json",
+        },
+        ...options,
+    }
+
+    // Build request URL
+    const queryString = qs.stringify(urlParamsObject)
+    const requestUrl = `${getStrapiURL(
+        `/api${path}${queryString ? `?${queryString}` : ""}`
+    )}`
+
+    // Trigger API call
+    const response = await axios.get(requestUrl, mergedOptions)
+
+    // Handle response
+    if (response.status !== 200) {
+        console.error(response.statusText, response.status)
+        throw new Error(`An error occured please try again`)
+    }
+    // console.log("response.data",response.data)
+    // const data = await JSON.parse(response.data)
+    return response.data
 }
 
-// controlDeviceId=device/nanchong_wanda
-const options = {
-    hostname: config.apiHost,
-    port: config.apiPort,
-    path: '/api/devices?filters[controlDeviceId][$eq]=' + config.controlDeviceId,
-    method: 'GET'
-};
+const getDevices = (async () => {
+    try {
+        const devices = await fetchAPI('/devices', {
+            filters: {
+                controlDeviceId: config.controlDeviceId,
+            },
+        })
+        // console.log("devices", devices);
+        return devices
+        // 在这里使用devices变量做其他操作
+        // ...
 
-try {
-    const req = http.request(options, (res) => {
-        console.log(`api statusCode: ${res.statusCode}`);
-        let data = '';
+    } catch (error) {
 
-        res.on('data', (chunk) => {
-            data += chunk;
-        });
-
-        res.on('end', () => {
-            const devices = JSON.parse(data)
-            console.log("end", devices.data)
-        });
-    });
-
-    req.on('error', (error) => {
         console.error(error);
-    });
-    req.end();
-} catch (error) {
-    console.error("init api error", error);
-}
+        return false
+    }
+})
 
 
 
@@ -54,21 +74,28 @@ let client = mqtt.connect(config.brokerUrl, {
     password: config.password,
 }) // create a client
 
-
+// console.log(config, "config");
 
 // console.log(client);
-client.on('connect', function () {
-    if (devices) devices.map((device) => {
-        try {
-            client.subscribe(device.attributes.mqttTopic, { qos: 2 }, function (err) {
-                if (!err) {
-                    console.log('init connect mqtt', device.attributes.mqttTopic)
-                }
-            })
-        } catch (error) {
-            console.error("client.subscribe", error, device);
-        }
-    })
+client.on('connect', async function () {
+
+    const devices = await getDevices()
+    // console.log("devices",devices);
+    if (devices) {
+        devices.data.map((device) => {
+            try {
+                client.subscribe(device.attributes.mqttTopic, { qos: 2 }, function (err) {
+                    if (!err) {
+                        console.log('init connect mqtt', device.attributes.mqttTopic)
+                    }
+                })
+            } catch (error) {
+                console.error("client.subscribe", error, device);
+            }
+        })
+    } else {
+        console.error("not devices");
+    }
 
 
     //请求api这个店里所有的房间。
