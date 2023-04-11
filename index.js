@@ -158,7 +158,7 @@ async function doSomething() {
                     const { type, pin } = device.attributes.config
                     const { mqttTopic } = device.attributes
                     if (type == "relay" && pin) {
-                        const io = new Gpio(pin, 'out');
+                        const io = new Gpio(pin);
                         result = io.readSync()
                         client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, device }))
                     }
