@@ -174,4 +174,26 @@ async function doSomething() {
     }
 }
 
-doSomething();
+
+setInterval(async () => {
+    const devices = await getDevices()
+    // console.log("doSomething正在循环");
+    if (devices) {
+        devices.data.map((device) => {
+            try {
+                const { type, pin } = device.attributes.config
+                const { mqttTopic } = device.attributes
+                if (type == "relay" && pin) {
+                    const io = new Gpio(pin);
+                    result = io.readSync()
+                    client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, device }))
+                }
+                console.log("publish", { type, pin, mqttTopic, result, });
+
+            } catch (error) {
+                console.error("client.publish", error, device);
+            }
+        })
+    }
+
+}, config.beattim);
