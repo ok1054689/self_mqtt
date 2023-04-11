@@ -18,7 +18,7 @@ let client = mqtt.connect(config.brokerUrl, {
 
 // console.log(client);
 client.on('connect', function () {
-    client.subscribe(config.topic, function (err) {
+    client.subscribe(config.topic, { qos: 2 }, function (err) {
         if (!err) {
             console.log('init connect mqtt')
         }
@@ -61,7 +61,7 @@ client.on("message", function (topic, message) {
             //后续处理
             result = pin.readSync()
             console.log({ ...msgObj, result })
-            client.publish(config.topic + "/state", JSON.stringify({ result, pin: msgObj.pin }))
+            client.publish(config.topic + "/state", JSON.stringify({ result, pin: msgObj.pin }), { qos: 2 })
         }
 
     } catch (e) {
