@@ -6,6 +6,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "mqtt": "^4.3.7"
+    "mqtt": "^4.3.7",
+    "onoff": "^6.0.3"
   }
 }
