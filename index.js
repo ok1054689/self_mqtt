@@ -20,7 +20,7 @@ let client = mqtt.connect(config.brokerUrl, {
 client.on('connect', function () {
     client.subscribe(config.topic, function (err) {
         if (!err) {
-            client.publish(config.topic, 'init connect mqtt')
+            console.log('init connect mqtt')
         }
     })
 
@@ -61,9 +61,9 @@ client.on("message", function (topic, message) {
             //后续处理
             result = pin.readSync()
             console.log({ ...msgObj, result })
-            client.publish(config.topic + "/state/" + msgObj.pin, JSON.stringify({ result }))
+            client.publish(config.topic + "/state", JSON.stringify({ result, pin: msgObj.pin }))
         }
-        
+
     } catch (e) {
         console.log(topic, e);
         // return false;
