@@ -12,7 +12,7 @@ const config = {
     // topic: "device/nanchong_wanda_1",
     username: process.env.MQTT_USERNAME,
     password: process.env.MQTT_PASSWORD,
-    // apiRoomId: 1,
+    beattim: 5,
 }
 function getStrapiURL(path) {
     return `${process.env.STRAPI_API_URL || "http://localhost:1337"
@@ -128,7 +128,7 @@ client.on("message", function (topic, message) {
         //         console.log("未到期");
         //     }
         // }
-        if (msgObj.type == "gpio" && msgObj.pin && msgObj.action) {
+        if (msgObj.type == "relay" && msgObj.pin && msgObj.action) {
             const pin = new Gpio(msgObj.pin, 'out');
             const value = msgObj.action == "off" ? 0 : 1; // 切换 GPIO 值（异或运算）
             pin.writeSync(value); // 将新值写入 GPIO
@@ -150,9 +150,25 @@ client.on("message", function (topic, message) {
 
 async function doSomething() {
     while (true) {
-        console.log("doSomething正在循环");
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const devices = await getDevices()
+        // console.log("doSomething正在循环");
+        if (devices) {
+            devices.data.map((device) => {
+                try {
+
+                    if (device.attributes.type == "relay" && device.attributes.pin) {
+                        const pin = new Gpio(device.attributes.pin, 'out');
+                        result = pin.readSync()
+                        client.publish(device.attributes.mqttTopic + "/state", JSON.stringify({ result, pin }))
+                    }
+                } catch (error) {
+                    console.error("client.publish", error, device);
+                }
+            })
+        }
+        //等待
+        await new Promise(resolve => setTimeout(resolve, config.beattim));
     }
 }
 
-// doSomething();
+doSomething();
