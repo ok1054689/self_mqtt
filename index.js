@@ -188,7 +188,7 @@ setInterval(async () => {
                 if (type == "relay" && pin) {
                     const io = new Gpio(pin);
                     result = io.readSync()
-                    client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, device }))
+                    client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, mqttTopic, type }))
                 }
                 console.log("publish", { type, pin, mqttTopic, result, });
 
