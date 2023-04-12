@@ -21,10 +21,10 @@ const devices = {
 
 const handlers = {
     relay: {
-        set: (pin, boolean) => {
-            boolean = !!boolean //转换为布尔类型。由于任何非零数值、非空字符串、非空对象等都可以被解释为真
+        set: (pin, on) => {
+            on = on == "on" ? 1 : 0
             const gpio = new Gpio(pin, 'out');
-            gpio.writeSync(boolean); // 将新值写入 GPIO
+            gpio.writeSync(on); // 将新值写入 GPIO
             //返回结果
             return gpio.readSync()
         },
@@ -74,7 +74,7 @@ client.on("message", function (topic, message) {
             const device = devices[msgObj.key]
             if (device.type == "relay" && device.pin) {
                 const topic = `${config.controlDeviceId}/${msgObj.key}/state`
-                console.log(device, "device");
+                console.log("device", msgObj.on, device);
                 client.publish(
                     topic,
                     JSON.stringify({
