@@ -20,20 +20,22 @@ const config = {
 
 const devices = {
     "power_1": {
-        name: "卧室灯电源",
+
         pin: 198,
         type: "relay",
         component: "switch",
         mqtt: {
             "~": `${config.discovery_prefix}/switch/${config.controlDeviceId}/power_1`,
             unique_id: config.controlDeviceId + "_" + "power_1",
+            name: "卧室灯电源",
             cmd_t: "~/set",
             stat_t: "~/state",
             schema: "json",
-            payload_on: '{"key": "power_1","on": "on"}',
-            payload_off: '{"key": "power_1"}',
+            payload_on: '{"key": "power_1","on": "ON"}',
+            payload_off: '{"key": "power_1"},"on": "OFF"}',
             state_on: "ON",
             state_off: "OFF",
+
         }
 
         // HASS_object_id: process.env.CONTROL_DEVICE_ID + "power_1"
@@ -43,7 +45,7 @@ const devices = {
 const handlers = {
     relay: {
         set: (pin, on) => {
-            on = on == "on" ? 1 : 0
+            on = on == "ON" ? 1 : 0
             const gpio = new Gpio(pin, 'out');
             gpio.writeSync(on); // 将新值写入 GPIO
             //返回结果
@@ -136,13 +138,12 @@ setInterval(async () => {
             const device = devices[key]
 
             if (device.type == "relay" && device.pin) {
-                const topic = `${config.controlDeviceId}/${key}/state`
+                const topic = `${device.mqtt["~"]}/state`
                 client.publish(
                     topic,
-                    JSON.stringify({
-                        state: handlers.relay.get(device.pin) ? "ON" : "OFF",
-                        topic
-                    })
+                    JSON.stringify(
+                        { key, "on": handlers.relay.get(device.pin) ? "ON" : "OFF", }
+                    )
                 )
             }
             // console.log("publish", type, pin, mqttTopic, result);
