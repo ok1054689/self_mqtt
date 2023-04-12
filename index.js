@@ -1,69 +1,40 @@
 // import * as mqtt from "mqtt"  // import everything inside the mqtt module and give it the namespace "mqtt"
 const mqtt = require('mqtt')
 const Gpio = require('onoff').Gpio;
-// const http = require('http');
-const qs = require('qs');
 require('dotenv').config();
-const axios = require('axios');
+// const http = require('http');
 
 const config = {
     controlDeviceId: process.env.CONTROL_DEVICE_ID,
     brokerUrl: process.env.BROKER_URL,
-    // topic: "device/nanchong_wanda_1",
     username: process.env.MQTT_USERNAME,
     password: process.env.MQTT_PASSWORD,
     beattim: process.env.BEATTIM ?? 1,
 }
-function getStrapiURL(path) {
-    return `${process.env.STRAPI_API_URL || "http://localhost:1337"
-        }${path}`
+
+const devices = {
+    power_1: {
+        pin: 198,
+        type: "relay",
+    }
 }
-async function fetchAPI(path, urlParamsObject = {}, options = {}) {
-    // Merge default and user options
-    const mergedOptions = {
-        headers: {
-            "Content-Type": "application/json",
+
+const handlers = {
+    relay: {
+        set: (pin, boolean) => {
+            boolean = !!boolean //转换为布尔类型。由于任何非零数值、非空字符串、非空对象等都可以被解释为真
+            const gpio = new Gpio(pin, 'out');
+            gpio.writeSync(boolean); // 将新值写入 GPIO
+            //返回结果
+            return gpio.readSync()
         },
-        ...options,
+        get: (pin) => {
+            const gpio = new Gpio(pin);
+            //返回结果
+            return gpio.readSync()
+        }
     }
-
-    // Build request URL
-    const queryString = qs.stringify(urlParamsObject)
-    const requestUrl = `${getStrapiURL(
-        `/api${path}${queryString ? `?${queryString}` : ""}`
-    )}`
-
-    // Trigger API call
-    const response = await axios.get(requestUrl, mergedOptions)
-
-    // Handle response
-    if (response.status !== 200) {
-        console.error(response.statusText, response.status)
-        throw new Error(`An error occured please try again`)
-    }
-    // console.log("response.data",response.data)
-    // const data = await JSON.parse(response.data)
-    return response.data
 }
-
-const getDevices = (async () => {
-    try {
-        const devices = await fetchAPI('/devices', {
-            filters: {
-                controlDeviceId: config.controlDeviceId,
-            },
-        })
-        // console.log("devices", devices);
-        return devices
-        // 在这里使用devices变量做其他操作
-        // ...
-
-    } catch (error) {
-
-        console.error(error);
-        return false
-    }
-})
 
 
 
@@ -74,128 +45,82 @@ let client = mqtt.connect(config.brokerUrl, {
     password: config.password,
 }) // create a client
 
-// console.log(config, "config");
 
-// console.log(client);
-client.on('connect', async function () {
-
-    const devices = await getDevices()
-    // console.log("devices",devices);
-    if (devices) {
-        devices.data.map((device) => {
-            try {
-                client.subscribe(device.attributes.mqttTopic, { qos: 2 }, function (err) {
-                    if (!err) {
-                        console.log('init connect mqtt', device.attributes.mqttTopic)
-                    }
-                })
-            } catch (error) {
-                console.error("client.subscribe", error, device);
-            }
-        })
-    } else {
-        console.error("not devices");
-    }
-
-
-    //请求api这个店里所有的房间。
+client.on('connect', function () {
+    const topic = config.controlDeviceId + "/+/set"
+    client.subscribe(topic, { qos: 2 }, function (err) {
+        if (!err) {
+            console.log('init connect mqtt', `subscribe topic: ${topic}`)
+        }
+    })
 
 })
 
 client.on("message", function (topic, message) {
+
     /**
      * {
-     *      pin:198,
-     *      type: "gpio",
+     *      key:power_1,
      *      action:"off"
      * }
      */
     try {
         const msgObj = JSON.parse(message)
-        let result = null
-
+        // console.log('msgObj', msgObj);
         /**
          * 到期时间
          */
-        // if (msgObj) {
-        //     const expireDate = new Date(msgObj.expire)
-        //     if (expireDate < new Date()) {
-        //         // 关电
-        //         // client.publish(config.topic, '关电成功')
-        //         console.log("已到期，关电成功");
-        //     } else {
-        //         // client.publish(config.topic, '未到期')
-        //         console.log("未到期");
-        //     }
-        // }
-        if (msgObj.type == "relay" && msgObj.pin && msgObj.action) {
-            const pin = new Gpio(msgObj.pin, 'out');
-            const value = msgObj.action == "off" ? 0 : 1; // 切换 GPIO 值（异或运算）
-            pin.writeSync(value); // 将新值写入 GPIO
-            //后续处理
-            result = pin.readSync()
-            console.log({ ...msgObj, result })
-            client.publish(config.topic + "/state", JSON.stringify({ result, pin: msgObj.pin }), { qos: 2 })
+        if (msgObj.key) {
+            const device = devices[msgObj.key]
+            if (device.type == "relay" && device.pin) {
+                const topic = `${config.controlDeviceId}/${msgObj.key}/state`
+                console.log(device, "device");
+                client.publish(
+                    topic,
+                    JSON.stringify({
+                        device,
+                        state: handlers.relay.set(device.pin, msgObj.on),
+                        topic
+                    })
+                )
+            }
         }
 
     } catch (e) {
         console.log(topic, e);
         // return false;
     }
-
-    // message is Buffer
-
     // client.end()
 })
 
-async function doSomething() {
-    while (true) {
-        const devices = await getDevices()
-        // console.log("doSomething正在循环");
-        if (devices) {
-            devices.data.map((device) => {
-                try {
-                    const { type, pin } = device.attributes.config
-                    const { mqttTopic } = device.attributes
-                    if (type == "relay" && pin) {
-                        const io = new Gpio(pin);
-                        result = io.readSync()
-                        client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, device }))
-                    }
-                    console.log("publish", { type, pin, mqttTopic, result, });
-
-                } catch (error) {
-                    console.error("client.publish", error, device);
-                }
-            })
-        }
-        //等待
-        await new Promise(resolve => setTimeout(resolve, config.beattim));
-    }
-}
 
 
 setInterval(async () => {
 
-    // console.log("tttt", config.beattim);
-    const devices = await getDevices()
-    // console.log("doSomething正在循环");
-    if (devices) {
-        devices.data.map((device) => {
-            try {
-                const { type, pin } = device.attributes.config
-                const { mqttTopic } = device.attributes
-                if (type == "relay" && pin) {
-                    const io = new Gpio(pin);
-                    result = io.readSync()
-                    client.publish(mqttTopic + "/state", JSON.stringify({ result, pin, mqttTopic, type }))
-                }
-                // console.log("publish", type, pin, mqttTopic, result);
+    const keys = Object.keys(devices);
+    keys.map((key) => {
+        try {
+            const device = devices[key]
 
-            } catch (error) {
-                console.error("client.publish", error, device);
+            if (device.type == "relay" && device.pin) {
+                const topic = `${config.controlDeviceId}/${key}/state`
+                client.publish(
+                    topic,
+                    JSON.stringify({
+                        device,
+                        state: handlers.relay.get(device.pin),
+                        topic
+                    })
+                )
             }
-        })
-    }
+            // console.log("publish", type, pin, mqttTopic, result);
+
+        } catch (error) {
+            console.error("client.publish", error, device);
+        }
+    })
+
 
 }, config.beattim * 1000);
+
+
