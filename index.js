@@ -141,9 +141,7 @@ setInterval(async () => {
                 const topic = `${device.mqtt["~"]}/state`
                 client.publish(
                     topic,
-                    JSON.stringify(
-                        { key, "on": handlers.relay.get(device.pin) ? "ON" : "OFF", }
-                    )
+                    handlers.relay.get(device.pin) ? "ON" : "OFF"
                 )
             }
             // console.log("publish", type, pin, mqttTopic, result);
