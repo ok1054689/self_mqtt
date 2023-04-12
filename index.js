@@ -32,7 +32,7 @@ const devices = {
             stat_t: "~/state",
             schema: "json",
             payload_on: '{"key": "power_1","on": "ON"}',
-            payload_off: '{"key": "power_1"},"on": "OFF"}',
+            payload_off: '{"key": "power_1"}',
             state_on: "ON",
             state_off: "OFF",
 
