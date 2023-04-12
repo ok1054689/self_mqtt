@@ -43,16 +43,16 @@ const devices = {
 const handlers = {
     relay: {
         set: (pin, on) => {
-            // on = on == "on" ? 1 : 0
-            // const gpio = new Gpio(pin, 'out');
-            // gpio.writeSync(on); // 将新值写入 GPIO
-            // //返回结果
-            // return gpio.readSync()
+            on = on == "on" ? 1 : 0
+            const gpio = new Gpio(pin, 'out');
+            gpio.writeSync(on); // 将新值写入 GPIO
+            //返回结果
+            return gpio.readSync()
         },
         get: (pin) => {
-            // const gpio = new Gpio(pin);
-            // //返回结果
-            // return gpio.readSync()
+            const gpio = new Gpio(pin);
+            //返回结果
+            return gpio.readSync()
         }
     }
 }
