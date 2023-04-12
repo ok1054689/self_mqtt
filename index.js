@@ -87,7 +87,7 @@ client.on("message", function (topic, message) {
      */
     try {
         const msgObj = JSON.parse(message)
-        // console.log('msgObj', msgObj);
+        console.log('msgObj', msgObj);
         /**
          * 到期时间
          */
@@ -115,7 +115,9 @@ client.on("message", function (topic, message) {
 })
 
 
-
+/**
+ * 状态
+ */
 setInterval(async () => {
 
     const keys = Object.keys(devices);
@@ -128,8 +130,7 @@ setInterval(async () => {
                 client.publish(
                     topic,
                     JSON.stringify({
-                        device,
-                        state: handlers.relay.get(device.pin),
+                        state: handlers.relay.get(device.pin) ? "ON" : "OFF",
                         topic
                     })
                 )
