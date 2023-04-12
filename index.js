@@ -100,8 +100,9 @@ client.on("message", function (topic, message) {
                     topic,
                     JSON.stringify({
                         // device,
+                        topic,
                         state: handlers.relay.set(device.pin, msgObj.on) ? "ON" : "OFF",
-                        topic
+
                     })
                 )
             }
@@ -109,6 +110,15 @@ client.on("message", function (topic, message) {
 
     } catch (e) {
         console.log(topic, e);
+        client.publish(
+            "debug",
+            JSON.stringify({
+                // device,
+                topic,
+                e
+
+            })
+        )
         // return false;
     }
     // client.end()
