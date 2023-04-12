@@ -87,7 +87,7 @@ client.on("message", function (topic, message) {
      */
     try {
         const msgObj = JSON.parse(message)
-        console.log('msgObj', msgObj);
+        // console.log('msgObj', msgObj);
         /**
          * 到期时间
          */
