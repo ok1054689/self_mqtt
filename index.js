@@ -95,13 +95,13 @@ client.on("message", function (topic, message) {
             const device = devices[msgObj.key]
             if (device.type == "relay" && device.pin) {
                 const topic = `${device.mqtt["~"]}/state`
-                console.log("device", msgObj.on, device);
+                console.log("device", msgObj.on);
                 client.publish(
                     topic,
                     JSON.stringify({
                         // device,
                         topic,
-                        state: handlers.relay.set(device.pin, msgObj.on) ? "ON" : "OFF",
+                        state: handlers.relay.set(device.pin, msgObj.on),
 
                     })
                 )
