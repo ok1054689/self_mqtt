@@ -100,12 +100,7 @@ client.on("message", function (topic, message) {
                 console.log("device", msgObj.on);
                 client.publish(
                     topic,
-                    JSON.stringify({
-                        // device,
-                        topic,
-                        state: handlers.relay.set(device.pin, msgObj.on),
-
-                    })
+                    handlers.relay.set(device.pin, msgObj.on) ? "ON" : "OFF"
                 )
             }
         }
