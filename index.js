@@ -71,9 +71,9 @@ let client = mqtt.connect(config.brokerUrl, {
 
 client.on('connect', function () {
     const topic = `${config.discovery_prefix}/+/${config.controlDeviceId}/+/set`
-    client.subscribe(topic, { qos: 2 }, function (err) {
+    client.subscribe(topic, { qos: 0 }, function (err) {
         if (!err) {
-            console.log('init connect mqtt', `subscribe topic: ${topic}`)
+            // console.log('init connect mqtt', `subscribe topic: ${topic}`)
         }
     })
 
@@ -97,7 +97,7 @@ client.on("message", function (topic, message) {
             const device = devices[msgObj.key]
             if (device.type == "relay" && device.pin) {
                 const topic = `${device.mqtt["~"]}/state`
-                console.log("device", msgObj.on);
+                // console.log("device", msgObj.on);
                 client.publish(
                     topic,
                     handlers.relay.set(device.pin, msgObj.on) ? "ON" : "OFF"
@@ -106,7 +106,7 @@ client.on("message", function (topic, message) {
         }
 
     } catch (e) {
-        console.log(topic, e);
+        // console.log(topic, e);
         client.publish(
             "debug",
             JSON.stringify({
@@ -142,7 +142,7 @@ setInterval(async () => {
             // console.log("publish", type, pin, mqttTopic, result);
 
         } catch (error) {
-            console.error("client.publish", error);
+            // console.error("client.publish", error);
         }
     })
 
@@ -154,7 +154,7 @@ setInterval(async () => {
  * homeassistant 发现设备格式
  */
 setInterval(async () => {
-    console.log("mqtt config");
+    // console.log("mqtt config");
     const keys = Object.keys(devices);
     keys.map((key) => {
         try {
@@ -175,7 +175,7 @@ setInterval(async () => {
             // console.log("publish", type, pin, mqttTopic, result);
 
         } catch (error) {
-            console.error("client.publish", error, device);
+            // console.error("client.publish", error, device);
         }
     })
 
