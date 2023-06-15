@@ -106,16 +106,15 @@ client.on("message", function (topic, message) {
         }
 
     } catch (e) {
-        // console.log(topic, e);
-        client.publish(
-            "debug",
-            JSON.stringify({
-                // device,
-                topic,
-                e
-
-            })
-        )
+        console.log(topic, e);
+        // client.publish(
+        //     "debug",
+        //     JSON.stringify({
+        //         // device,
+        //         topic,
+        //         e
+        //     })
+        // )
         // return false;
     }
     // client.end()
